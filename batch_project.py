@@ -1,7 +1,9 @@
 import arcpy, os
 
 class BatchProject(object):
-    """Batch Project """
+    """Class for allowing use of ESRIs project tool for batch purposes in severa; different formats.
+     Class cna be used to call on a folder of ESRI Shapefiles, an ESRI Geodatabase, a single shapefile or a single
+     feature class"""
     arcpy.env.overwriteOutput = True
 
     def __init__(self, in_features=None, out_features=None, prj_from_str=None, transform=None, ):
@@ -18,6 +20,8 @@ class BatchProject(object):
 
     @staticmethod
     def list_fcs(input_gdb):
+        '''Lists All Feature classes in a ESRI Geodatabase. Returns all featureclasses as a List'''
+
         arcpy.env.workspace = input_gdb
         gdb_work = arcpy.env.workspace
         arcpy.Compact_management(gdb_work)
@@ -35,6 +39,9 @@ class BatchProject(object):
 
     @classmethod
     def from_directory(cls, project_dir, prj_from_str, transform):
+        '''Projects All Shapefiles in a directory using ESRIs arcp.yProject_managment.
+        It is expected that all shapefiles fill be in the same projection
+        for GCS transformations to a new projection '''
         in_shps = BatchProject.list_shps_in_dir(project_dir)
         out_shps = [os.path.join(project_dir, f.replace(".shp", "_projected.shp")) for f in
                                             in_shps if f.endswith(".shp")]
@@ -45,6 +52,10 @@ class BatchProject(object):
 
     @classmethod
     def from_gdb(cls, input_gdb, prj_from_str, transform):
+        '''Projects All Feature Classes in a directory using ESRIs arcp.yProject_managment.
+        It is expected that all Feature Classes will be in the same
+        projection for GCS transformations to a new projection '''
+
         in_fcs = BatchProject.list_fcs(input_gdb)
         print in_fcs
         out_fcs = [fc + "_projected" for fc in in_fcs]
@@ -55,11 +66,15 @@ class BatchProject(object):
 
     @classmethod
     def from_single_shp(cls, in_shp, prj_from_str, transform):
+        '''Projects A single shapefile using ESRIs arcp.yProject_managment'''
+
         out_shp = in_shp.replace(".shp", "_projected.shp")
         arcpy.Project_management(in_shp, out_shp, prj_from_str, transform)
 
     @classmethod
     def from_single_fc(cls, in_fc, prj_from_str, transform):
+        '''Projects A single feature class using ESRIs arcp.yProject_managment'''
+
         gdb, fc = os.path.split(in_fc)
         out_fc = os.path.join(gdb, fc + "_projected")
         arcpy.Project_management(in_fc, out_fc, prj_from_str, transform)
